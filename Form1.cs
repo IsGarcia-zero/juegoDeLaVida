@@ -4,7 +4,7 @@ namespace juegoDeLaVida
 {
     public partial class Form1 : Form
     {
-        private int longitud = 80;
+        private int longitud = 100;
         private int longitudPixel = 10;
         int[,] celulaEstado;
         private Bitmap bmp;
@@ -12,6 +12,8 @@ namespace juegoDeLaVida
         private bool dibujar = false;
         private int porcentagee = 50;
         private int velocida = 50;
+        private bool totalistica = false;
+        private Int64 generacion = 0;
         public Form1()
         {
             InitializeComponent();
@@ -87,17 +89,16 @@ namespace juegoDeLaVida
         private int contarVecinasVivas(int x, int y)
         {
             int vecinasVivas = 0;
-            int xMin = Math.Max(0, x - 1);
-            int xMax = Math.Min(longitud - 1, x + 1);
-            int yMin = Math.Max(0, y - 1);
-            int yMax = Math.Min(longitud - 1, y + 1);
-            for (int i = xMin; i <= xMax; i++)
+            for (int i = x - 1; i <= x + 1; i++)
             {
-                for (int j = yMin; j <= yMax; j++)
+                for (int j = y - 1; j <= y + 1; j++)
                 {
+                    int xIndex = (i + longitud) % longitud;
+                    int yIndex = (j + longitud) % longitud;
+
                     if (i != x || j != y)
                     {
-                        vecinasVivas += celulaEstado[i, j];
+                        vecinasVivas += celulaEstado[xIndex, yIndex];
                     }
                 }
             }
@@ -114,6 +115,62 @@ namespace juegoDeLaVida
             else
             {
                 return (vecinasVivas >= minVecinos && vecinasVivas <= maxVecinos) ? 1 : 0;
+            }
+        }
+        private void juegoVida2()
+        {
+            string b = bTxtbx.Text;
+            string s = sTxtbx.Text; 
+
+            int[] bw = Array.ConvertAll(b.ToCharArray(), c => (int)Char.GetNumericValue(c));
+            int[] sw = Array.ConvertAll(s.ToCharArray(), c => (int)Char.GetNumericValue(c));
+
+            int[,] celulaTemp = new int[longitud, longitud];
+            for (int x = 0; x < longitud; x++)
+            {
+                for (int y = 0; y < longitud; y++)
+                {
+                    if (celulaEstado[x, y] == 0)
+                    {
+                        celulaTemp[x, y] = reglas2(x, y, false, sw, bw);
+                    }
+                    else
+                    {
+                        celulaTemp[x, y] = reglas2(x, y, true, sw, bw);
+                    }
+                }
+            }
+            celulaEstado = celulaTemp;
+        }
+        private int contarVecinasVivas2(int x, int y)
+        {
+            int vecinasVivas = 0;
+            for (int i = x - 1; i <= x + 1; i++)
+            {
+                for (int j = y - 1; j <= y + 1; j++)
+                {
+                    int xIndex = (i + longitud) % longitud;
+                    int yIndex = (j + longitud) % longitud;
+
+                    if (i != x || j != y)
+                    {
+                        vecinasVivas += celulaEstado[xIndex, yIndex];
+                    }
+                }
+            }
+            return vecinasVivas;
+        }
+        private int reglas2(int x, int y, bool estado, int[] sValues, int[] bValues)
+        {
+            int vecinasVivas = contarVecinasVivas2(x, y);
+
+            if (estado)
+            {
+                return (sValues.Contains(vecinasVivas)) ? 1 : 0;
+            }
+            else
+            {
+                return (bValues.Contains(vecinasVivas)) ? 1 : 0;
             }
         }
         private void random_Click(object sender, EventArgs e)
@@ -146,6 +203,7 @@ namespace juegoDeLaVida
         private void iniciar_Click(object sender, EventArgs e)
         {
             timer1.Enabled = true;
+            totalistica = false;
         }
 
         private void pausa_Click(object sender, EventArgs e)
@@ -155,7 +213,16 @@ namespace juegoDeLaVida
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            juegoVida();
+            if (totalistica)
+            {
+                juegoVida2();
+            }
+            else
+            {
+                juegoVida();
+            
+            }
+            label6.Text = $"Generacion: {generacion++}";
             pintarMatriz();
         }
 
@@ -232,7 +299,7 @@ namespace juegoDeLaVida
             {
                 for (int j = 0; j < longitud; j++)
                 {
-                    celulaEstado[i, j] = 0; 
+                    celulaEstado[i, j] = 0;
                 }
             }
 
@@ -242,6 +309,12 @@ namespace juegoDeLaVida
         private void limpiarBtn_Click(object sender, EventArgs e)
         {
             limpiarTablero();
+        }
+
+        private void ntacionIni_Click(object sender, EventArgs e)
+        {
+            timer1.Enabled = true;
+            totalistica = true;
         }
     }
 }
