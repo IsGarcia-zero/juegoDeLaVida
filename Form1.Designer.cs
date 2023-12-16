@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            pictureBox1 = new PictureBox();
             random = new Button();
             iniciar = new Button();
             pausa = new Button();
@@ -63,20 +62,11 @@
             sTxtbx = new TextBox();
             ntacionIni = new Button();
             label6 = new Label();
+            panel1 = new Panel();
+            pictureBox1 = new PictureBox();
+            panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.Location = new Point(12, 12);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(1000, 1000);
-            pictureBox1.TabIndex = 0;
-            pictureBox1.TabStop = false;
-            pictureBox1.Click += pictureBox1_Click;
-            pictureBox1.MouseDown += pictureBox1_MouseDown;
-            pictureBox1.MouseMove += pictureBox1_MouseMove;
-            pictureBox1.MouseUp += pictureBox1_MouseUp;
             // 
             // random
             // 
@@ -359,11 +349,34 @@
             label6.Size = new Size(0, 15);
             label6.TabIndex = 31;
             // 
+            // panel1
+            // 
+            panel1.AutoScroll = true;
+            panel1.Controls.Add(pictureBox1);
+            panel1.Location = new Point(12, 9);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1001, 1001);
+            panel1.TabIndex = 32;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Location = new Point(0, 0);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(1000, 1000);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 0;
+            pictureBox1.TabStop = false;
+            pictureBox1.LoadCompleted += pictureBox1_LoadCompleted;
+            pictureBox1.MouseDown += pictureBox1_MouseDown_1;
+            pictureBox1.MouseMove += pictureBox1_MouseMove_1;
+            pictureBox1.MouseUp += pictureBox1_MouseUp_1;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1208, 1061);
+            Controls.Add(panel1);
             Controls.Add(label6);
             Controls.Add(ntacionIni);
             Controls.Add(sTxtbx);
@@ -395,18 +408,17 @@
             Controls.Add(pausa);
             Controls.Add(iniciar);
             Controls.Add(random);
-            Controls.Add(pictureBox1);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
+            KeyPress += Form1_KeyPress;
+            panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-
-        private PictureBox pictureBox1;
         private Button random;
         private Button iniciar;
         private Button pausa;
@@ -440,5 +452,7 @@
         private TextBox sTxtbx;
         private Button ntacionIni;
         private Label label6;
+        private Panel panel1;
+        private PictureBox pictureBox1;
     }
 }

@@ -1,11 +1,14 @@
 using Accessibility;
-
+using ILGPU;
+using ILGPU.Runtime;
+using ILGPU.Runtime.CPU;
+using ILGPU.Runtime.Cuda;
 namespace juegoDeLaVida
 {
     public partial class Form1 : Form
     {
-        private int longitud = 100;
-        private int longitudPixel = 10;
+        private int longitud = 1000;
+        private int longitudPixel = 1;
         int[,] celulaEstado;
         private Bitmap bmp;
         private Graphics g;
@@ -14,6 +17,7 @@ namespace juegoDeLaVida
         private int velocida = 50;
         private bool totalistica = false;
         private Int64 generacion = 0;
+        private int zoom = 0;
         public Form1()
         {
             InitializeComponent();
@@ -26,6 +30,8 @@ namespace juegoDeLaVida
             Smax.SelectedIndex = 3;
             Nmin.SelectedIndex = 3;
             Nmax.SelectedIndex = 3;
+            this.KeyPreview = true;
+            this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
         }
         private static Color colorVida = Color.Black;
         private static Color colorFondo = Color.White;
@@ -70,22 +76,54 @@ namespace juegoDeLaVida
             int nMin = Convert.ToInt32(Nmin.SelectedItem);
             int nMax = Convert.ToInt32(Nmax.SelectedItem);
             int[,] celulaTemp = new int[longitud, longitud];
-            for (int x = 0; x < longitud; x++)
+
+            List<Thread> threads = new List<Thread>();
+            int threadCount = Environment.ProcessorCount; // N�mero de hilos disponibles
+
+            // Divide la matriz en secciones para cada hilo
+            int sectionHeight = longitud / threadCount;
+
+            for (int i = 0; i < threadCount; i++)
             {
-                for (int y = 0; y < longitud; y++)
+                int start = i * sectionHeight;
+                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
+
+                Thread thread = new Thread(() =>
                 {
-                    if (celulaEstado[x, y] == 0)
+                    for (int x = start; x < end; x++)
                     {
-                        celulaTemp[x, y] = reglas(x, y, false, nMax, nMin);
+                        for (int y = 0; y < longitud; y++)
+                        {
+                            if (celulaEstado[x, y] == 0)
+                            {
+                                celulaTemp[x, y] = reglas(x, y, false, nMax, nMin);
+                            }
+                            else
+                            {
+                                celulaTemp[x, y] = reglas(x, y, true, sMax, sMin);
+                            }
+                        }
                     }
-                    else
-                    {
-                        celulaTemp[x, y] = reglas(x, y, true, sMax, sMin);
-                    }
-                }
+                });
+
+                threads.Add(thread);
             }
+
+            // Inicia todos los hilos
+            foreach (Thread thread in threads)
+            {
+                thread.Start();
+            }
+
+            // Espera a que todos los hilos terminen
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+
             celulaEstado = celulaTemp;
         }
+
         private int contarVecinasVivas(int x, int y)
         {
             int vecinasVivas = 0;
@@ -120,28 +158,64 @@ namespace juegoDeLaVida
         private void juegoVida2()
         {
             string b = bTxtbx.Text;
-            string s = sTxtbx.Text; 
+            string s = sTxtbx.Text;
 
             int[] bw = Array.ConvertAll(b.ToCharArray(), c => (int)Char.GetNumericValue(c));
             int[] sw = Array.ConvertAll(s.ToCharArray(), c => (int)Char.GetNumericValue(c));
 
             int[,] celulaTemp = new int[longitud, longitud];
-            for (int x = 0; x < longitud; x++)
+            using Context context = Context.Create(builder => builder.Cuda());
+            using Accelerator accelerator = context.CreateCudaAccelerator(0);
+            // para 2 dimensiones se usa el Allocate2D
+
+
+
+            List<Thread> threads = new List<Thread>();
+            int threadCount = Environment.ProcessorCount; 
+
+            int sectionHeight = longitud / threadCount;
+
+            for (int i = 0; i < threadCount; i++)
             {
-                for (int y = 0; y < longitud; y++)
+                int start = i * sectionHeight;
+                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
+
+                Thread thread = new Thread(() =>
                 {
-                    if (celulaEstado[x, y] == 0)
+                    for (int x = start; x < end; x++)
                     {
-                        celulaTemp[x, y] = reglas2(x, y, false, sw, bw);
+                        for (int y = 0; y < longitud; y++)
+                        {
+                            if (celulaEstado[x, y] == 0)
+                            {
+                                celulaTemp[x, y] = reglas2(x, y, false, sw, bw);
+                            }
+                            else
+                            {
+                                celulaTemp[x, y] = reglas2(x, y, true, sw, bw);
+                            }
+                        }
                     }
-                    else
-                    {
-                        celulaTemp[x, y] = reglas2(x, y, true, sw, bw);
-                    }
-                }
+                });
+
+                threads.Add(thread);
             }
+
+            // Inicia todos los hilos
+            foreach (Thread thread in threads)
+            {
+                thread.Start();
+            }
+
+            // Espera a que todos los hilos terminen
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+
             celulaEstado = celulaTemp;
         }
+
         private int contarVecinasVivas2(int x, int y)
         {
             int vecinasVivas = 0;
@@ -220,7 +294,7 @@ namespace juegoDeLaVida
             else
             {
                 juegoVida();
-            
+
             }
             label6.Text = $"Generacion: {generacion++}";
             pintarMatriz();
@@ -239,36 +313,6 @@ namespace juegoDeLaVida
             }
         }
 
-        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
-        {
-            dibujar = true;
-            int x = e.X / longitudPixel;
-            int y = e.Y / longitudPixel;
-            if (x >= 0 && x < longitud && y >= 0 && y < longitud)
-            {
-                celulaEstado[x, y] = celulaEstado[x, y] == 1 ? 0 : 1;
-                pintarMatriz();
-            }
-        }
-
-        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
-        {
-            dibujar = false;
-        }
-
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (dibujar)
-            {
-                int x = e.X / longitudPixel;
-                int y = e.Y / longitudPixel;
-                if (x >= 0 && x < longitud && y >= 0 && y < longitud)
-                {
-                    celulaEstado[x, y] = celulaEstado[x, y] == 1 ? 0 : 1;
-                    pintarMatriz();
-                }
-            }
-        }
 
         private void hScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
@@ -315,6 +359,62 @@ namespace juegoDeLaVida
         {
             timer1.Enabled = true;
             totalistica = true;
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '+')
+            {
+                zoom++;
+                pictureBox1.Height += zoom;
+                pictureBox1.Width += zoom;
+            }
+            else if (e.KeyChar == '-')
+            {
+                if (zoom > 0.2f)
+                {
+                    zoom--;
+                    pictureBox1.Height -= zoom;
+                    pictureBox1.Width -= zoom;
+                }
+            }
+        }
+
+        private void pictureBox1_LoadCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            pictureBox1.Width = pictureBox1.Image.Width;
+            pictureBox1.Height = pictureBox1.Image.Height;
+        }
+
+        private void pictureBox1_MouseDown_1(object sender, MouseEventArgs e)
+        {
+            dibujar = true;
+            int x = e.X / longitudPixel;
+            int y = e.Y / longitudPixel;
+            if (x >= 0 && x < longitud && y >= 0 && y < longitud)
+            {
+                celulaEstado[x, y] = celulaEstado[x, y] == 1 ? 0 : 1;
+                pintarMatriz();
+            }
+        }
+
+        private void pictureBox1_MouseUp_1(object sender, MouseEventArgs e)
+        {
+            dibujar = false;
+        }
+
+        private void pictureBox1_MouseMove_1(object sender, MouseEventArgs e)
+        {
+            if (dibujar)
+            {
+                int x = e.X / longitudPixel;
+                int y = e.Y / longitudPixel;
+                if (x >= 0 && x < longitud && y >= 0 && y < longitud)
+                {
+                    celulaEstado[x, y] = celulaEstado[x, y] == 1 ? 0 : 1;
+                    pintarMatriz();
+                }
+            }
         }
     }
 }
