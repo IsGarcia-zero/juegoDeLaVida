@@ -64,6 +64,10 @@
             label6 = new Label();
             panel1 = new Panel();
             pictureBox1 = new PictureBox();
+            button1 = new Button();
+            atractComboBox = new ComboBox();
+            timer2 = new System.Windows.Forms.Timer(components);
+            label7 = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
@@ -333,7 +337,7 @@
             // 
             // ntacionIni
             // 
-            ntacionIni.Location = new Point(1059, 553);
+            ntacionIni.Location = new Point(1069, 554);
             ntacionIni.Name = "ntacionIni";
             ntacionIni.Size = new Size(97, 23);
             ntacionIni.TabIndex = 30;
@@ -371,11 +375,47 @@
             pictureBox1.MouseMove += pictureBox1_MouseMove_1;
             pictureBox1.MouseUp += pictureBox1_MouseUp_1;
             // 
+            // button1
+            // 
+            button1.Location = new Point(1069, 647);
+            button1.Name = "button1";
+            button1.Size = new Size(84, 23);
+            button1.TabIndex = 33;
+            button1.Text = "Calcular";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
+            // atractComboBox
+            // 
+            atractComboBox.FormattingEnabled = true;
+            atractComboBox.Items.AddRange(new object[] { "2", "3", "4", "5" });
+            atractComboBox.Location = new Point(1039, 618);
+            atractComboBox.Name = "atractComboBox";
+            atractComboBox.Size = new Size(151, 23);
+            atractComboBox.TabIndex = 34;
+            // 
+            // timer2
+            // 
+            timer2.Interval = 1;
+            timer2.Tick += timer2_Tick;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(1039, 600);
+            label7.Name = "label7";
+            label7.Size = new Size(142, 15);
+            label7.TabIndex = 35;
+            label7.Text = "Calcular atractores de 2x2";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1208, 1061);
+            Controls.Add(label7);
+            Controls.Add(atractComboBox);
+            Controls.Add(button1);
             Controls.Add(panel1);
             Controls.Add(label6);
             Controls.Add(ntacionIni);
@@ -454,5 +494,9 @@
         private Label label6;
         private Panel panel1;
         private PictureBox pictureBox1;
+        private Button button1;
+        private ComboBox atractComboBox;
+        private System.Windows.Forms.Timer timer2;
+        private Label label7;
     }
 }

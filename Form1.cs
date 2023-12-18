@@ -1,8 +1,14 @@
-using Accessibility;
 using ILGPU;
+
 using ILGPU.Runtime;
-using ILGPU.Runtime.CPU;
+using ManagedCuda;
 using ILGPU.Runtime.Cuda;
+using System.Numerics;
+using System.Diagnostics;
+using juegoDeLaVida.Objetos;
+using juegoDeLaVida.Utilidades;
+using System.Runtime.ConstrainedExecution;
+using System.Text;
 namespace juegoDeLaVida
 {
     public partial class Form1 : Form
@@ -26,10 +32,13 @@ namespace juegoDeLaVida
             Smax.DropDownStyle = ComboBoxStyle.DropDownList;
             Nmin.DropDownStyle = ComboBoxStyle.DropDownList;
             Nmax.DropDownStyle = ComboBoxStyle.DropDownList;
+            atractComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            atractComboBox.SelectedIndex = 0;
             Smin.SelectedIndex = 2;
             Smax.SelectedIndex = 3;
             Nmin.SelectedIndex = 3;
             Nmax.SelectedIndex = 3;
+            timer2.Enabled = true;
             this.KeyPreview = true;
             this.KeyPress += new KeyPressEventHandler(Form1_KeyPress);
         }
@@ -81,12 +90,12 @@ namespace juegoDeLaVida
             int threadCount = Environment.ProcessorCount; // N�mero de hilos disponibles
 
             // Divide la matriz en secciones para cada hilo
-            int sectionHeight = longitud / threadCount;
+            int sectionHeight = longitud / 1;
 
-            for (int i = 0; i < threadCount; i++)
+            for (int i = 0; i < 1; i++)
             {
                 int start = i * sectionHeight;
-                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
+                int end = (i == 1 - 1) ? longitud : (i + 1) * sectionHeight;
 
                 Thread thread = new Thread(() =>
                 {
@@ -155,6 +164,7 @@ namespace juegoDeLaVida
                 return (vecinasVivas >= minVecinos && vecinasVivas <= maxVecinos) ? 1 : 0;
             }
         }
+
         private void juegoVida2()
         {
             string b = bTxtbx.Text;
@@ -164,21 +174,15 @@ namespace juegoDeLaVida
             int[] sw = Array.ConvertAll(s.ToCharArray(), c => (int)Char.GetNumericValue(c));
 
             int[,] celulaTemp = new int[longitud, longitud];
-            using Context context = Context.Create(builder => builder.Cuda());
-            using Accelerator accelerator = context.CreateCudaAccelerator(0);
-            // para 2 dimensiones se usa el Allocate2D
-
-
-
             List<Thread> threads = new List<Thread>();
-            int threadCount = Environment.ProcessorCount; 
+            int threadCount = Environment.ProcessorCount;
 
-            int sectionHeight = longitud / threadCount;
+            int sectionHeight = longitud / 1;
 
-            for (int i = 0; i < threadCount; i++)
+            for (int i = 0; i < 1; i++)
             {
                 int start = i * sectionHeight;
-                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
+                int end = (i == 1 - 1) ? longitud : (i + 1) * sectionHeight;
 
                 Thread thread = new Thread(() =>
                 {
@@ -415,6 +419,118 @@ namespace juegoDeLaVida
                     pintarMatriz();
                 }
             }
+        }
+        private List<Atracrs> atractoresResultados()
+        {
+            int n = Convert.ToInt32(atractComboBox.SelectedItem);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            List<Atracrs> cadenaAtrctList = new();
+            Atractores atractores = new();
+            List<Universo> uni = atractores.calcularPosibilidades(n*n);
+            List<String> final = new();
+            final.Insert(0, Convert.ToString(new string('0', n*n)));
+            List<String> aux = new();
+            int i = 0;
+            while (atractores.estaLleno(n*n, uni))
+            {
+                int f = 0;
+                foreach (Universo pepe in uni)
+                {
+                    if (final[i] == pepe.EstadoActual && pepe.EstaOcupado == false)
+                    {
+                        uni[f].EstaOcupado = true;
+                        break;
+                    }
+                    if (final[i] == pepe.EstadoActual && pepe.EstaOcupado)
+                    {
+                        int hg = 0;
+                        foreach (Universo coincidencias in uni)
+                        {
+                            if (!coincidencias.EstaOcupado)
+                            {
+                                final[i] = coincidencias.EstadoActual;
+                                uni[hg].EstaOcupado = true;
+                                break;
+                            }
+
+                            hg++;
+                        }
+                        break;
+                    }
+                    f++;
+                }
+                aux.Insert(i, final[i]);
+                int[,] hola = new int[n, n];
+                int fff = 0;
+                for (int xf = 0; xf < n; xf++)
+                {
+                    for (int yf = 0; yf < n; yf++)
+                    {
+                        hola[xf, yf] = (final[i][fff] == '0') ? 0 : 1;
+                        fff++;
+                    }
+                }
+                longitud = n;
+                celulaEstado = hola;
+                juegoVida();
+                String auxf = "";
+                for (int gfr = 0; gfr < n; gfr++)
+                {
+                    for (int gfr2 = 0; gfr2 < n; gfr2++)
+                    {
+                        auxf += Convert.ToString(celulaEstado[gfr, gfr2]);
+                    }
+                }
+                final.Insert(i + 1, auxf);
+                Atracrs atracrs = new();
+                atracrs.CadenaAnterior = final[i];
+                atracrs.CadenaActual = final[i + 1];
+                cadenaAtrctList.Add(atracrs);
+                i++;
+            }
+            return cadenaAtrctList;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            List<Atracrs> atractores = new();
+            atractores = atractoresResultados();
+            proMaster(atractores);
+        }
+        private void proMaster(List<Atracrs> atractores) { 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var cadenaDOT = new StringBuilder("digraph G {");
+            for (int i = 0; i < atractores.Count; i++) {
+                cadenaDOT.Append($"\"{Convert.ToInt32(atractores[i].CadenaAnterior,2)}\" -> \"{Convert.ToInt32(atractores[i].CadenaActual,2)}\";");
+            }
+            cadenaDOT.Append("}");
+            cadenaDOT = cadenaDOT.Replace("\r\n", "");
+            File.WriteAllText("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.dot", cadenaDOT.ToString());
+            Process process = new();
+            process.StartInfo.FileName = "dot";
+            process.StartInfo.Arguments = "-Tsvg C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.dot -o C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.svg";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+            process.WaitForExit();
+            string errors = process.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(errors))
+            {
+                Console.WriteLine($"Error en: {errors}");
+            }
+            process.Close();
+            stopwatch.Stop();
+            TimeSpan ts = stopwatch.Elapsed;
+            Console.WriteLine($"Tiempo de ejecucion: {ts}");
+        }
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            label7.Text = $"Atractores de {atractComboBox.SelectedItem}x{atractComboBox.SelectedItem}";
+            
         }
     }
 }
