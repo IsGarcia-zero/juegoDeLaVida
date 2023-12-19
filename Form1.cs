@@ -9,6 +9,9 @@ using juegoDeLaVida.Objetos;
 using juegoDeLaVida.Utilidades;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
+using Renci.SshNet;
+using Renci.SshNet.Sftp;
+using System.Security.Claims;
 namespace juegoDeLaVida
 {
     public partial class Form1 : Form
@@ -526,6 +529,45 @@ namespace juegoDeLaVida
             stopwatch.Stop();
             TimeSpan ts = stopwatch.Elapsed;
             Console.WriteLine($"Tiempo de ejecucion: {ts}");
+            var privateKey = new PrivateKeyFile("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\Seh.pem");
+
+            using SftpClient client = new("3.145.45.66", 22, "ubuntu", privateKey);
+            try { 
+                client.Connect();
+                if (client.IsConnected)
+                {
+                    Console.WriteLine("Conectado");
+                    if (!client.Exists("/home/ubuntu/a2D/"))
+                    {
+                        client.CreateDirectory("/home/ubuntu/a2D/");
+                        client.UploadFile(File.OpenRead("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.svg"), "/home/ubuntu/a2D/atractor.svg");
+                        foreach (var file in client.ListDirectory("/home/ubuntu/a2D/"))
+                        {
+                            Console.WriteLine(file.FullName);
+                        }
+                    }
+                    else {
+                        client.DeleteFile("/home/ubuntu/a2D/atractor.svg");
+                        client.DeleteDirectory("/home/ubuntu/a2D/");
+                        client.CreateDirectory("/home/ubuntu/a2D/");
+                        client.UploadFile(File.OpenRead("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.svg"), "/home/ubuntu/a2D/atractor.svg");
+                        foreach (var file in client.ListDirectory("/home/ubuntu/a2D/"))
+                        {
+                            Console.WriteLine(file.FullName);
+                        }
+                    }
+                    client.Disconnect();
+                }
+                else
+                {
+                    Console.WriteLine("No conectado");
+                    MessageBox.Show("No se pudo conectar al servidor");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
         private void timer2_Tick(object sender, EventArgs e)
         {
