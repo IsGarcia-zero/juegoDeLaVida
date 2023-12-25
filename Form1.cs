@@ -27,6 +27,10 @@ namespace juegoDeLaVida
         private bool totalistica = false;
         private Int64 generacion = 0;
         private int zoom = 0;
+        public Objetos.GraficasUnidades graficasUnidades = new();
+        private List<Int64> unoss = new();
+        private List<Double> logss = new();
+        private List<Double> shannonss = new();
         public Form1()
         {
             InitializeComponent();
@@ -93,12 +97,12 @@ namespace juegoDeLaVida
             int threadCount = Environment.ProcessorCount; // N�mero de hilos disponibles
 
             // Divide la matriz en secciones para cada hilo
-            int sectionHeight = longitud / 1;
+            int sectionHeight = longitud / threadCount;
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < threadCount; i++)
             {
                 int start = i * sectionHeight;
-                int end = (i == 1 - 1) ? longitud : (i + 1) * sectionHeight;
+                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
 
                 Thread thread = new Thread(() =>
                 {
@@ -134,6 +138,14 @@ namespace juegoDeLaVida
             }
 
             celulaEstado = celulaTemp;
+            Utilidades.GrafsUtil grafsUtil = new();
+            Int64 unos = grafsUtil.densidad1s(celulaEstado);
+            unoss.Add(unos);
+            logss.Add(grafsUtil.logUnos(unos));
+            shannonss.Add(grafsUtil.entriopiaShannon(celulaEstado));
+            graficasUnidades.unos = unoss;
+            graficasUnidades.log = logss;
+            graficasUnidades.shannon = shannonss;
         }
 
         private int contarVecinasVivas(int x, int y)
@@ -180,12 +192,12 @@ namespace juegoDeLaVida
             List<Thread> threads = new List<Thread>();
             int threadCount = Environment.ProcessorCount;
 
-            int sectionHeight = longitud / 1;
+            int sectionHeight = longitud / threadCount;
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < threadCount; i++)
             {
                 int start = i * sectionHeight;
-                int end = (i == 1 - 1) ? longitud : (i + 1) * sectionHeight;
+                int end = (i == threadCount - 1) ? longitud : (i + 1) * sectionHeight;
 
                 Thread thread = new Thread(() =>
                 {
@@ -221,6 +233,14 @@ namespace juegoDeLaVida
             }
 
             celulaEstado = celulaTemp;
+            Utilidades.GrafsUtil grafsUtil = new();
+            Int64 unos = grafsUtil.densidad1s(celulaEstado);
+            unoss.Add(unos);
+            logss.Add(grafsUtil.logUnos(unos));
+            shannonss.Add(grafsUtil.entriopiaShannon(celulaEstado));
+            graficasUnidades.unos = unoss;
+            graficasUnidades.log = logss;
+            graficasUnidades.shannon = shannonss;
         }
 
         private int contarVecinasVivas2(int x, int y)
@@ -430,13 +450,17 @@ namespace juegoDeLaVida
             stopwatch.Start();
             List<Atracrs> cadenaAtrctList = new();
             Atractores atractores = new();
-            List<Universo> uni = atractores.calcularPosibilidades(n*n);
+            List<Universo> uni = atractores.calcularPosibilidades(n * n);
             List<String> final = new();
-            final.Insert(0, Convert.ToString(new string('0', n*n)));
+            final.Insert(0, Convert.ToString(new string('0', n * n)));
             List<String> aux = new();
             int i = 0;
-            while (atractores.estaLleno(n*n, uni))
+            int numTareas = Environment.ProcessorCount;
+            var tareas = new Task[numTareas];
+            while (atractores.estaLleno(n * n, uni))
             {
+                int tamanoPorcion = uni.Count / numTareas;
+
                 int f = 0;
                 foreach (Universo pepe in uni)
                 {
@@ -501,18 +525,34 @@ namespace juegoDeLaVida
             atractores = atractoresResultados();
             proMaster(atractores);
         }
-        private void proMaster(List<Atracrs> atractores) { 
+        private void proMaster(List<Atracrs> atractores)
+        {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             var cadenaDOT = new StringBuilder("digraph G {");
-            for (int i = 0; i < atractores.Count; i++) {
-                cadenaDOT.Append($"\"{Convert.ToInt32(atractores[i].CadenaAnterior,2)}\" -> \"{Convert.ToInt32(atractores[i].CadenaActual,2)}\";");
+            cadenaDOT.Append("bgcolor=\"black\";");
+
+            Random random = new Random();
+
+            for (int i = 0; i < atractores.Count; i++)
+            {
+                int r = random.Next(0, 256);
+                int g = random.Next(0, 256);
+                int b = random.Next(0, 256);
+
+                string color = $"#{r:X2}{g:X2}{b:X2}";
+
+                cadenaDOT.Append($"\"{Convert.ToInt32(atractores[i].CadenaAnterior, 2)}\" [style=filled, fillcolor=\"{color}\"]; ");
+                cadenaDOT.Append($"\"{Convert.ToInt32(atractores[i].CadenaActual, 2)}\" [style=filled, fillcolor=\"{color}\"]; ");
+                cadenaDOT.Append($"\"{Convert.ToInt32(atractores[i].CadenaAnterior, 2)}\" -> \"{Convert.ToInt32(atractores[i].CadenaActual, 2)}\" [color=\"{color}\"]; ");
             }
             cadenaDOT.Append("}");
+
             cadenaDOT = cadenaDOT.Replace("\r\n", "");
             File.WriteAllText("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.dot", cadenaDOT.ToString());
+
             Process process = new();
-            process.StartInfo.FileName = "dot";
+            process.StartInfo.FileName = "circo";
             process.StartInfo.Arguments = "-Tsvg C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.dot -o C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\atractores.svg";
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
@@ -529,10 +569,12 @@ namespace juegoDeLaVida
             stopwatch.Stop();
             TimeSpan ts = stopwatch.Elapsed;
             Console.WriteLine($"Tiempo de ejecucion: {ts}");
+
             var privateKey = new PrivateKeyFile("C:\\Users\\Iljim\\Desktop\\AutomatasCelularesInfo\\Au2D\\Seh.pem");
 
             using SftpClient client = new("3.145.45.66", 22, "ubuntu", privateKey);
-            try { 
+            try
+            {
                 client.Connect();
                 if (client.IsConnected)
                 {
@@ -546,7 +588,8 @@ namespace juegoDeLaVida
                             Console.WriteLine(file.FullName);
                         }
                     }
-                    else {
+                    else
+                    {
                         client.DeleteFile("/home/ubuntu/a2D/atractor.svg");
                         client.DeleteDirectory("/home/ubuntu/a2D/");
                         client.CreateDirectory("/home/ubuntu/a2D/");
@@ -572,7 +615,28 @@ namespace juegoDeLaVida
         private void timer2_Tick(object sender, EventArgs e)
         {
             label7.Text = $"Atractores de {atractComboBox.SelectedItem}x{atractComboBox.SelectedItem}";
-            
+
+        }
+
+        private void atrBtn_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void graphBtn_Click(object sender, EventArgs e)
+        {
+            App.Graficos graficos = new(graficasUnidades);
+            graficos.ShowDialog();
+        }
+
+        private void guardarImg_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog Guardar = new SaveFileDialog();
+            Guardar.Filter = "JPEG(*.JPG)|*.JPG|BMP(*.BMP)|*.BMP|PNG(*.PNG)|*.PNG";
+            if (Guardar.ShowDialog() == DialogResult.OK)
+            {
+                pictureBox1.Image.Save(Guardar.FileName);
+            }
         }
     }
 }

@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="ILGPU" Version="1.5.1" />
     <PackageReference Include="ILGPU.Algorithms" Version="1.5.1" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WinForms" Version="2.0.0-rc2" />
     <PackageReference Include="ManagedCuda-12" Version="12.2.52" />
     <PackageReference Include="ManagedCuda-CUBLAS" Version="12.2.52" />
     <PackageReference Include="SSH.NET" Version="2023.0.0" />

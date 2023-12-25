@@ -49,10 +49,7 @@
             lblNmin = new Label();
             Nmin = new ComboBox();
             limpiarBtn = new Button();
-            sveBtn = new Button();
-            loadBtn = new Button();
             graphBtn = new Button();
-            atrBtn = new Button();
             label2 = new Label();
             hScrollBar3 = new HScrollBar();
             label3 = new Label();
@@ -68,6 +65,7 @@
             atractComboBox = new ComboBox();
             timer2 = new System.Windows.Forms.Timer(components);
             label7 = new Label();
+            guardarImg = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
@@ -242,41 +240,15 @@
             limpiarBtn.UseVisualStyleBackColor = true;
             limpiarBtn.Click += limpiarBtn_Click;
             // 
-            // sveBtn
-            // 
-            sveBtn.Location = new Point(1023, 360);
-            sveBtn.Name = "sveBtn";
-            sveBtn.Size = new Size(75, 23);
-            sveBtn.TabIndex = 19;
-            sveBtn.Text = "Guardar";
-            sveBtn.UseVisualStyleBackColor = true;
-            // 
-            // loadBtn
-            // 
-            loadBtn.Location = new Point(1120, 360);
-            loadBtn.Name = "loadBtn";
-            loadBtn.Size = new Size(75, 23);
-            loadBtn.TabIndex = 20;
-            loadBtn.Text = "Cargar";
-            loadBtn.UseVisualStyleBackColor = true;
-            // 
             // graphBtn
             // 
-            graphBtn.Location = new Point(1023, 389);
+            graphBtn.Location = new Point(1077, 360);
             graphBtn.Name = "graphBtn";
             graphBtn.Size = new Size(75, 23);
             graphBtn.TabIndex = 21;
             graphBtn.Text = "Graficas";
             graphBtn.UseVisualStyleBackColor = true;
-            // 
-            // atrBtn
-            // 
-            atrBtn.Location = new Point(1120, 389);
-            atrBtn.Name = "atrBtn";
-            atrBtn.Size = new Size(75, 23);
-            atrBtn.TabIndex = 22;
-            atrBtn.Text = "Atractor";
-            atrBtn.UseVisualStyleBackColor = true;
+            graphBtn.Click += graphBtn_Click;
             // 
             // label2
             // 
@@ -348,7 +320,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(1039, 618);
+            label6.Location = new Point(1054, 686);
             label6.Name = "label6";
             label6.Size = new Size(0, 15);
             label6.TabIndex = 31;
@@ -408,11 +380,22 @@
             label7.TabIndex = 35;
             label7.Text = "Calcular atractores de 2x2";
             // 
+            // guardarImg
+            // 
+            guardarImg.Location = new Point(1078, 389);
+            guardarImg.Name = "guardarImg";
+            guardarImg.Size = new Size(75, 23);
+            guardarImg.TabIndex = 36;
+            guardarImg.Text = "Guardar Imagen";
+            guardarImg.UseVisualStyleBackColor = true;
+            guardarImg.Click += guardarImg_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1208, 1061);
+            Controls.Add(guardarImg);
             Controls.Add(label7);
             Controls.Add(atractComboBox);
             Controls.Add(button1);
@@ -426,10 +409,7 @@
             Controls.Add(label3);
             Controls.Add(hScrollBar3);
             Controls.Add(label2);
-            Controls.Add(atrBtn);
             Controls.Add(graphBtn);
-            Controls.Add(loadBtn);
-            Controls.Add(sveBtn);
             Controls.Add(limpiarBtn);
             Controls.Add(Nmin);
             Controls.Add(lblNmin);
@@ -479,10 +459,7 @@
         private Label lblNmin;
         private ComboBox Nmin;
         private Button limpiarBtn;
-        private Button sveBtn;
-        private Button loadBtn;
         private Button graphBtn;
-        private Button atrBtn;
         private Label label2;
         private HScrollBar hScrollBar3;
         private Label label3;
@@ -498,5 +475,6 @@
         private ComboBox atractComboBox;
         private System.Windows.Forms.Timer timer2;
         private Label label7;
+        private Button guardarImg;
     }
 }
